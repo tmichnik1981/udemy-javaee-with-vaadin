@@ -473,3 +473,98 @@
   - OptimisticLockException is thrown when object has been changed by another user/thread
 
 #### Instructions
+
+###### Integrating SpringBoot with Vaading
+
+1. Add Maven dependency
+
+   ```xml
+   <dependency>
+   	<groupId>com.vaadin</groupId>
+   	<artifactId>vaadin-spring-boot-starter</artifactId>
+   	<version>2.0.1</version>
+   </dependency>
+   ```
+
+2. Create a class forming Gui  
+
+   ```java
+   /**tells Spring to call this when /ui is requested*/
+   @SpringUI(path="/ui")
+   @Title("This is the title")
+   /**default vaadin theme*/ 
+   @Theme("valo")
+   /**must extends com.vaadin.ui.UI*/
+   public class MainView extends UI{
+
+   	@Override
+   	protected void init(VaadinRequest request) {
+   		VerticalLayout verticalLayout = new VerticalLayout();
+   		
+   		verticalLayout.addComponent(new Label("Welcome to spring boot woth Vaadin..."));
+   		Button button = new Button("Click me!");
+   		verticalLayout.addComponent(button);
+   		button.addClickListener(new Button.ClickListener() {		
+   			@Override
+   			public void buttonClick(ClickEvent event) {
+   				verticalLayout.addComponent(new Label("Button has been clicked..."));
+   				
+   			}
+   		});
+   		setContent(verticalLayout);
+   	}
+   }
+   ```
+
+###### Deploying Spring-Boot-Vaadin project to the external Wilfly server 
+
+1. Configure maven plugins: spring-boot-maven-plugin, maven-war-plugin.
+
+   ```xml
+   <plugins>
+   	<plugin>
+   		<groupId>org.springframework.boot</groupId>
+   		<artifactId>spring-boot-maven-plugin</artifactId>
+   		<configuration>
+   			<executable>true</executable>
+   		</configuration>
+   	</plugin>
+   	<plugin>
+   		<artifactId>maven-war-plugin</artifactId>
+   		<configuration>
+   			<failOnMissingWebXml>false</failOnMissingWebXml>
+   		</configuration>
+   	</plugin>
+   </plugins>
+   ```
+
+2. Remove the embedded Tomcat from deployment
+
+   ```xml
+   <dependency>
+   	<groupId>org.springframework.boot</groupId>
+   	<artifactId>spring-boot-starter-tomcat</artifactId>
+   	<scope>provided</scope>
+   </dependency>
+   ```
+
+3. Configure a starting-application class.
+
+   ```java
+   @SpringBootApplication
+   /**extending SpringBootServletInitializer is necessary to get access to configure() method*/
+   public class App extends SpringBootServletInitializer{
+
+   	/**overwrite configure() method*/
+   	@Override
+   	protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
+   		return builder.sources(App.class);
+   	}
+   	
+   	public static void main(String[] args) {
+   		SpringApplication.run(App.class, args);
+   	}	
+   }
+   ```
+
+   ​
