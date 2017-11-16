@@ -472,6 +472,251 @@
   - we annotate a field with `@Version` annotation which stores the version of entity. Could be long , int, short.
   - OptimisticLockException is thrown when object has been changed by another user/thread
 
+- Label
+
+  ```java
+  /**Everything is displayed as it is*/
+  Label label = new Label("This is the label content!", ContentMode.TEXT);
+  /** HTML marks are interpreted and text will be displayed as bold*/
+  Label label = new Label("<b>This is the label content!</b>", ContentMode.HTML);
+  /** special marks are interpreted and converted to HTML \n will become a line break*/
+  Label label = new Label("This is the \nlabel content!", ContentMode.PREFORMATTED);
+  ```
+
+- TextField - basics
+
+  ```java
+  String value = "";
+  ObjectProperty<String> property = new ObjectProperty<String>(value );
+
+  TextField text = new TextField("Name: ", property);
+  //reacting on change immediately
+  text.setImmediate(true);
+  //user is able to type only 3 marks
+  text.setMaxLength(3);
+  //changes in the TextField are transmited to the Label via ObjectProperty
+  Label label = new Label(property);
+  label.setCaption("Result: ");
+  ```
+
+- TextField - events
+
+  ```java
+  TextField textField = new TextField("Character counter: ");
+  final Label counterLabel = new Label();
+  //reacting on change immediately
+  counterLabel.setImmediate(true);
+  //textField emmits events which are handled by TextChangeListener 		
+  textField.addTextChangeListener(new TextChangeListener(){
+  	@Override
+  	public void textChange(TextChangeEvent event) {
+  		int lengthOfText = event.getText().length();
+  		counterLabel.setValue("Number of characters: " + lengthOfText);
+  		}
+  	});
+  textField.setTextChangeEventMode(TextChangeEventMode.EAGER);
+  ```
+
+- TextArea
+
+  ```java
+  TextArea textArea = new TextArea();
+  textArea.setWidth("400px");
+  		
+  textArea.setWordwrap(false);
+  textArea.setValue("This is going to be a very long text see it will be wrapped!");
+  ```
+
+- Button
+
+  ```java
+  Button button = new Button("Save");
+  	    
+  button.addClickListener(new Button.ClickListener() {
+  	@Override
+  	public void buttonClick(ClickEvent event) {			  
+  		Notification.show("Button has been clicked...");
+  	}
+  });
+
+  /**OR
+     button.addClickListener(event -> Notification.show("Button has been clicked..."));
+  */
+  ```
+
+- CheckBox
+
+  ```java
+  CheckBox checkBox = new CheckBox("Has degree");
+  checkBox.addValueChangeListener(event -> System.out.println(checkBox.getValue()));
+  ```
+
+- OptionGroup
+
+  ```java
+  OptionGroup optionGroup = new OptionGroup("Universitities");
+  optionGroup.addItem("MIT");
+  optionGroup.addItem("Caltech");
+  optionGroup.addItem("Harvard");
+  optionGroup.addValueChangeListener(event -> System.out.println(event.getProperty()));
+  ```
+
+  ```java
+  OptionGroup optionGroup = new OptionGroup("Students");
+  Student s1 = new Student("Joe", 22);
+  Student s2 = new Student("Emily", 32);
+  //toString() will be used to display a caption
+  optionGroup.addItem(s1);
+  optionGroup.addItem(s2);
+         
+  optionGroup.addValueChangeListener(new ValueChangeListener() {
+  			
+  @Override
+  public void valueChange(ValueChangeEvent event) {
+  	Student student = (Student) event.getProperty().getValue();		
+  	System.out.println(student.getAge());
+  	}
+  });		
+  ```
+
+  ```java
+  //allows for multiselection
+  optionGroup.setMultiSelect(true);
+  ```
+
+- ComboBox - drop-down
+
+  ```java
+  ComboBox comboBox = new ComboBox("Names");
+  /**
+  FilteringMode.OFF - standard combobox, all values are shown when clicked 
+  FilteringMode.CONTAINS - only values containing provided letters are shown
+  FilteringMode.STARTSWITH -  only values starting with provided letters are shown
+  */
+  comboBox.setFilteringMode(FilteringMode.CONTAINS);
+  		
+  comboBox.addItem("Adam Smith");
+  comboBox.addItem("Albert Camus ");
+  comboBox.addItem("Heidegger");
+  comboBox.addItem("Exupery");
+  comboBox.addItem("Thomas Mann");
+  ```
+
+- Grid
+
+  ```java
+  List<Student> students = new ArrayList<>();
+  students.add(new Student("Joe Smith", 22));
+  students.add(new Student("Adam", 32));
+  students.add(new Student("Lopez", 78));
+
+  //model for the grid
+  BeanItemContainer<Student> container = new BeanItemContainer<>(Student.class, students);
+  //grig will guess column names from Student's field
+  Grid grid = new Grid(container);
+  				
+  grid.setColumnOrder("name", "age");
+  grid.setHeightMode(HeightMode.ROW);
+  //number of rows should be visible
+  grid.setHeightByRows(students.size());
+  ```
+
+- Grid - selections
+
+  - single selection
+
+  ```java
+  Grid grid = new Grid(container);
+  //single selection				
+  grid.setSelectionMode(SelectionMode.SINGLE);
+
+  Button button = new Button("Remove", new Button.ClickListener() {
+  			
+  @Override
+  public void buttonClick(ClickEvent event) {
+    	//single selection mode		
+  	SingleSelectionModel selectionModel = (SingleSelectionModel) grid.getSelectionModel();
+  	Student selectedStudent = (Student) selectionModel.getSelectedRow();
+  			
+  	grid.getContainerDataSource().removeItem(selectedStudent);
+  	//refreshing the grid
+  	grid.getSelectionModel().reset();
+  	}
+  } );
+  ```
+
+  - multi selection
+
+  ```java
+  Grid grid = new Grid(container);
+  grid.setSelectionMode(SelectionMode.MULTI);
+  ----------------------
+  Button button = new Button("Remove", new Button.ClickListener() {
+  			
+  @Override
+  public void buttonClick(ClickEvent event) {
+  	MultiSelectionModel selectionModel = (MultiSelectionModel) grid.getSelectionModel();
+  		
+      for(Object selectedItem : selectionModel.getSelectedRows()){
+  		grid.getContainerDataSource().removeItem(selectedItem);
+  	}
+  	//refreshing the grid
+  	grid.getSelectionModel().reset();
+  	}
+  });
+  ```
+
+- Tree
+
+  ```java
+  Tree menu = new Tree();
+  		
+  menu.addItem("Hungary");
+  menu.addItem("Germany");
+  menu.addItem("Budapest");
+  menu.setChildrenAllowed("Budapest", false);
+  menu.setParent("Budapest", "Hungary");
+  //node 'Hungary' will be expaned by default		
+  menu.expandItem("Hungary");
+  	
+  menu.addItem("Berlin");
+  menu.addItem("Munich");
+  menu.setChildrenAllowed("Berlin", false);
+  menu.setChildrenAllowed("Munich", false);
+   
+  menu.setParent("Berlin", "Germany");
+  menu.setParent("Munich", "Germany");
+  menu.addValueChangeListener(new ValueChangeListener() {
+  		
+  	@Override
+  	public void valueChange(ValueChangeEvent event) {
+  		String location = (String) event.getProperty().getValue();
+  		System.out.println(location);
+  	}
+  });		
+  ```
+
+- TabSheet
+
+  ```java
+  root.setWidth("100%");
+  TabSheet tabs = new TabSheet();
+  tabs.setWidth("50%");
+  		
+  HorizontalLayout layout1 = new HorizontalLayout();
+  layout1.addComponent(new Label("This is just the layout1"));
+  HorizontalLayout layout2 = new HorizontalLayout();
+  layout2.addComponent(new Label("This is just the layout2"));
+  		
+  tabs.addTab(layout1, "TAB1");
+  tabs.addTab(layout2, "TAB2");
+  		
+  root.addComponent(tabs);
+  root.setComponentAlignment(tabs, Alignment.TOP_CENTER);
+  ```
+
+  ​
+
 #### Instructions
 
 ###### Integrating SpringBoot with Vaading
